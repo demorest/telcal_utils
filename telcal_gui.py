@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+# Simple TK-based GUI for plotting TelCal results.
+# P. Demorest, 2017/03
+
 import os, glob, string
 import time
 

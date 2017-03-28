@@ -1,5 +1,9 @@
 #! /usr/bin/env python
 
+# Classes for reading VLA TelCal output files into python/sqlite data
+# structures.
+# P. Demorest, 2107/03
+
 import string
 import numpy
 from collections import namedtuple
