@@ -190,6 +190,36 @@ class TelcalGUI(object):
             for l in self.axes[p].get_xticklabels():
                 l.set_visible(False)
 
+    def update_time_plot(self,axes=None):
+        if axes is not None:
+            flim = axes.get_xlim()
+        else:
+            flim = None
+        tplots = ('AT', 'DT', 'PT')
+        for p in tplots: self.axes[p].clear()
+        ids = self.plotids()
+        ff = self.curdat.freq / 1e3
+        for k in sorted(list(set(ids))):
+            if flim is None:
+                idx = np.where(ids==k)
+            else:
+                idx = np.where((ids==k)*(ff>flim[0])*(ff<flim[1]))
+            tt = 24.0*(self.curdat.mjd[idx]-self.t0)
+            self.axes['PT'].plot(tt, self.curdat.phase[idx], '+')
+            self.axes['DT'].plot(tt, self.curdat.delay[idx], '+')
+            self.axes['AT'].plot(tt, self.curdat.amp[idx], '+')
+        self.axes['PT'].set_xlabel('Time (UT; h)')
+
+        self.axes['AT'].set_ylabel('Amp')
+        self.axes['DT'].set_ylabel('Delay (ns)')
+        self.axes['PT'].set_ylabel('Phase (deg)')
+
+        for p in tplots:
+            self.axes[p].grid(True)
+
+        for p in ('AT', 'DT'):
+            for l in self.axes[p].get_xticklabels():
+                l.set_visible(False)
 
     def update_plot(self):
         if self.curselection is not None:
@@ -203,36 +233,22 @@ class TelcalGUI(object):
         else:
             self.curdat = self.data.get(ants=self.antselection)
         if len(self.curdat.mjd)==0: return
-        ids = self.plotids()
         self.t0 = int(self.curdat.mjd.min())
-        for k in sorted(list(set(ids))):
-            idx = np.where(ids==k)
-            tt = 24.0*(self.curdat.mjd[idx]-self.t0)
-            self.axes['PT'].plot(tt, self.curdat.phase[idx], '+')
-            self.axes['DT'].plot(tt, self.curdat.delay[idx], '+')
-            self.axes['AT'].plot(tt, self.curdat.amp[idx], '+')
 
+        self.update_time_plot()
         self.update_freq_plot(self.axes['AT'])
-
-        for p in self.axes.values(): p.grid(True)
-
-        self.axes['PT'].set_xlabel('Time (UT; h)')
-
-        self.axes['AT'].set_ylabel('Amp')
-        self.axes['DT'].set_ylabel('Delay (ns)')
-        self.axes['PT'].set_ylabel('Phase (deg)')
 
         self.axes['PT'].set_ylim((-180,180))
 
         self.plotfig.tight_layout()
 
-        for p in ('AT', 'DT'):
-            for l in self.axes[p].get_xticklabels():
-                l.set_visible(False)
-
         for p in ('AT', 'DT', 'PT'):
             self.axes[p].callbacks.connect('xlim_changed', 
                     self.update_freq_plot)
+
+        for p in ('AF', 'DF', 'PF'):
+            self.axes[p].callbacks.connect('xlim_changed', 
+                    self.update_time_plot)
 
         self.plotfig.subplots_adjust(hspace=0.01,wspace=0.01)
         self.plotcanvas.show()
