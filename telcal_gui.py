@@ -68,6 +68,7 @@ class TelcalGUI(object):
                 exportselection=0)
         self.datasetL.pack(fill=tk.Y,expand=1)
         self.datasetL.activate(0)
+        self.datasetS.config(command = self.datasetL.yview)
 
         # Control buttons
         self.buttonF = ttk.Frame(self.controlF)
