@@ -37,7 +37,7 @@ class TelcalGN(namedtuple('TelcalGN',
             # skip HA, Az, El
             source = fields[16]
             if flag:
-                reason = string.join(fields[16:],' ')
+                reason = str.join(' ',fields[16:])
             else:
                 reason = ''
             return super(TelcalGN,cls).__new__(cls, mjd, utc, lst, ifid, freq,
@@ -79,16 +79,17 @@ class TelcalDB(object):
         self.db.commit()
 
     #def get(self,cond=None,ant=None,ifid=None):
-    def get(self,ants=[],**kwargs):
+    def get(self,ants=[],strip=True,**kwargs):
         """
         Return fields listed in tuple 'what' as numpy arrays using
-        stated 'where' condition.
+        stated 'where' condition.  If strip is True, bad (flagged
+        or zeroed) results will not be included.
         """
         c = self.db.cursor()
 
         # Build up query
         where = ""
-        for (k,v) in kwargs.iteritems():
+        for (k,v) in iter(kwargs.items()):
             where += " and %s='%s'" % (k, v)
 
         if len(ants):
@@ -104,7 +105,10 @@ class TelcalDB(object):
         #if ifid is not None:
         #    where += " and ifid='%s'" % ifid
 
-        qry = "SELECT * from gn WHERE not flag and not zero" + where
+        if strip:
+            qry = "SELECT * from gn WHERE not flag and not zero" + where
+        else:
+            qry = "SELECT * from gn WHERE TRUE" + where
         c.execute(qry)
         rows = c.fetchall()
         ncol = 14 # number of columns; get automatically?

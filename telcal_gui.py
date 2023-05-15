@@ -11,12 +11,13 @@ import matplotlib
 matplotlib.use('TkAgg')
 #import matplotlib.pyplot
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
-        NavigationToolbar2TkAgg)
+        NavigationToolbar2Tk)
 #from matplotlib.backend_bases import key_press_handler # need?
 from matplotlib.figure import Figure
 
-import Tkinter as tk
-import ttk
+import tkinter as tk
+#import ttk
+from tkinter import ttk
 import telcal
 
 class TelcalGUI(object):
@@ -113,10 +114,10 @@ class TelcalGUI(object):
 
 
         self.plotcanvas = FigureCanvasTkAgg(self.plotfig, master=self.plotF)
-        self.plotcanvas.show()
+        self.plotcanvas.draw()
         self.plotcanvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH,
                 expand=1)
-        self.plottoolbar = NavigationToolbar2TkAgg(self.plotcanvas, self.plotF)
+        self.plottoolbar = NavigationToolbar2Tk(self.plotcanvas, self.plotF)
         self.plottoolbar.update()
         self.plotcanvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
@@ -135,11 +136,11 @@ class TelcalGUI(object):
 
     @property
     def datasets(self):
-        return map(lambda x: os.path.splitext(os.path.basename(x))[0],
-                self.filelist)
+        return list(map(lambda x: os.path.splitext(os.path.basename(x))[0],
+                self.filelist))
 
     def refresh_dataset_list(self):
-        self._datasetlist.set(string.join(self.datasets,' '))
+        self._datasetlist.set(str.join(' ',self.datasets))
 
     @property
     def curselection(self):
@@ -166,7 +167,7 @@ class TelcalGUI(object):
 
     def plotids(self):
         return np.core.defchararray.add(self.curdat.ant,
-                np.array(map(lambda x: x.split('-')[0], self.curdat.ifid)))
+                np.array(list(map(lambda x: x.split('-')[0], self.curdat.ifid))))
 
     def update_freq_plot(self,axes):
         tlim = axes.get_xlim()
@@ -226,7 +227,7 @@ class TelcalGUI(object):
         if self.curselection is not None:
             if self.curselection != self._dsloaded:
                 self.load_telcal()
-                self._antennalist.set('all ' + string.join(self.data.ants,' '))
+                self._antennalist.set('all ' + str.join(' ',self.data.ants))
                 self.antL.activate(0)
         for p in self.axes.values(): p.clear()
         if (self.antselection is None) or ('all' in self.antselection):
@@ -240,6 +241,7 @@ class TelcalGUI(object):
         self.update_freq_plot(self.axes['AT'])
 
         self.axes['PT'].set_ylim((-180,180))
+        self.axes['AT'].set_ylim((-0.1,1.0)) # XXX
 
         self.plotfig.tight_layout()
 
@@ -252,7 +254,7 @@ class TelcalGUI(object):
                     self.update_time_plot)
 
         self.plotfig.subplots_adjust(hspace=0.01,wspace=0.01)
-        self.plotcanvas.show()
+        self.plotcanvas.draw()
 
 if __name__ == '__main__':
     root = tk.Tk()
